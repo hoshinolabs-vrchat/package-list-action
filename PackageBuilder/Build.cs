@@ -328,7 +328,6 @@ namespace VRC.PackageManagement.Automation
             if (releases.Count == 0)
             {
                 Serilog.Log.Information($"Found no releases for {owner}/{name}");
-                return null;
             }
 
             var result = new List<string>();

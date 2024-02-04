@@ -35,7 +35,8 @@ namespace VRC.PackageManagement.Automation
         const string PackageManifestFilename = "package.json";
         const string WebPageIndexFilename = "index.html";
         const string VRCAgent = "VCCBootstrap/1.0";
-        const string PackageListingPublishFilename = "index.json";
+        [Parameter("Package listing publish filename")]
+        string PackageListingPublishFilename = "index.json";
         const string WebPageAppFilename = "app.js";
 
         [Parameter("Directory to save index into")] 
@@ -63,6 +64,11 @@ namespace VRC.PackageManagement.Automation
         
         AbsolutePath PackageListingSourcePath => PackageListingSourceFolder / PackageListingSourceFilename;
         AbsolutePath WebPageSourcePath => PackageListingSourceFolder / "Website";
+
+        [Parameter("Include prerelease")]
+        bool IncludePrerelease = false;
+        [Parameter("Only package lissting publish")]
+        bool OnlyPackageListingPublish = false;
 
         #region Methods wrapped for GitHub / Local Parity
 
@@ -208,6 +214,11 @@ namespace VRC.PackageManagement.Automation
                 string savePath = ListPublishDirectory / PackageListingPublishFilename;
                 repoList.Save(savePath);
 
+                if (OnlyPackageListingPublish) {
+                	Serilog.Log.Information($"Saved Listing to {savePath}.");
+                	return;
+                }
+                
                 var indexReadPath = WebPageSourcePath / WebPageIndexFilename;
                 var appReadPath = WebPageSourcePath / WebPageAppFilename;
                 var indexWritePath = ListPublishDirectory / WebPageIndexFilename;
@@ -313,7 +324,7 @@ namespace VRC.PackageManagement.Automation
             }
             
             // Go through each release
-            var releases = await Client.Repository.Release.GetAll(owner, name);
+            var releases = await Client.Repository.Release.GetAll(owner, name).Where(release => !release.Prerelease || IncludePrerelease).ToList();
             if (releases.Count == 0)
             {
                 Serilog.Log.Information($"Found no releases for {owner}/{name}");

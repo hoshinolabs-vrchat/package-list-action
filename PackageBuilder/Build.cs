@@ -324,7 +324,7 @@ namespace VRC.PackageManagement.Automation
             }
             
             // Go through each release
-            var releases = await Client.Repository.Release.GetAll(owner, name).Where(release => !release.Prerelease || IncludePrerelease).ToList();
+            var releases = (await Client.Repository.Release.GetAll(owner, name)).Where(release => !release.Prerelease || IncludePrerelease).ToList();
             if (releases.Count == 0)
             {
                 Serilog.Log.Information($"Found no releases for {owner}/{name}");
